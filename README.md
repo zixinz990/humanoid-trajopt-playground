@@ -5,6 +5,9 @@ This repository contains several Python scripts for solving trajectory optimizat
 1. Backflip, simple humanoid (simple_humanoid_backlip.py)
 2. Jump, given target landing pose, Talos (talos_jump.py).
 
+![](simple_humanoid_backflip.gif)
+![](talos_jump.gif)
+
 More maneuvers will be added! Contributions are welcome!
 
 ## Dependencies
@@ -29,4 +32,3 @@ sudo find / -type d -name simple_humanoid_description
 ```
 
 We did this because it is the easiest way to load a customized robot model for ``crocoddyl``. We know this approach is not elegant, and we will try to find a better solution.
-# humanoid-trajopt-playground
