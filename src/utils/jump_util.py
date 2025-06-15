@@ -144,7 +144,7 @@ class JumpingProblem:
 
         # FLYING-DOWN PHASE ##################################################################################
         flyingDownPhase = []
-        for _ in range(numFlyingKnots):
+        for k in range(numFlyingKnots):
             # Body position reference
             bodyPosRef = (
                 np.array(
@@ -168,7 +168,7 @@ class JumpingProblem:
             )
 
             # Create the action model and append
-            flyingUpPhase.append(
+            flyingDownPhase.append(
                 self.createKnotActionModel(timeStep, [], bodyPoseRef=bodyPoseRef)
             )
 
