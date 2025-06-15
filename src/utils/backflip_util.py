@@ -14,7 +14,6 @@ class BackflipProblem:
         lf_contact_frame_name: str,
         integrator: str = "rk4",
         control: str = "zero",
-        fwddyn: bool = True,
     ):
         """
         Construct a backflip problem.
@@ -28,7 +27,6 @@ class BackflipProblem:
         :param q_flying_ready: Default joint configuration for the flying ready phase.
         :param integrator: Type of the integrator ('euler', 'rk4', 'rk3', 'rk2').
         :param control: Type of control parametrization ('zero', 'one', 'rk4', 'rk3').
-        :param fwddyn: Use forward dynamics if True, otherwise inverse dynamics.
         """
         self.robot_model = robot_model
         self.robot_data = robot_model.createData()
@@ -36,7 +34,6 @@ class BackflipProblem:
         self.actuation = crocoddyl.ActuationModelFloatingBase(self.state)
         self._integrator = integrator
         self._control = control
-        self._fwddyn = fwddyn
 
         # Get frame IDs of base and foot contact frames
         self.base_frame_id = self.robot_model.getFrameId(base_frame_name)
@@ -79,6 +76,8 @@ class BackflipProblem:
         # Define friction coefficient and ground
         self.mu = 0.7
         self.R_ground = np.eye(3)
+
+        # Weights for joint state bounds cost
         self.x_bounds_weights = np.array(
             [0.0] * 6  # base SE3 residual (no bounds)
             + [100.0] * (self.robot_model.nv - 6)  # joint position residual
@@ -242,7 +241,7 @@ class BackflipProblem:
         # ---------------------------------------------------------------------------- #
         # Flying-Up Phase ------------------------------------------------------------ #
         # ---------------------------------------------------------------------------- #
-        # Control the robot to track a whole-base state reference trajectory
+        # Control the robot to track a whole-body state reference trajectory
         base_pos_ref_0 = self.x_flying_takeoff[:3]
         base_pos_ref_peak = base_pos_ref_0 + np.array(
             [
@@ -372,7 +371,7 @@ class BackflipProblem:
         # ---------------------------------------------------------------------------- #
         # Flying-Down Phase ---------------------------------------------------------- #
         # ---------------------------------------------------------------------------- #
-        # Control the robot to track a whole-base state reference trajectory
+        # Control the robot to track a whole-body state reference trajectory
         foot_poses_ref_final = {
             self.lf_contact_frame_id: pinocchio.SE3(
                 np.eye(3), np.array([0.48, 0.09, 0.0])
@@ -532,7 +531,7 @@ class BackflipProblem:
         """
         Create an action model for one knot.
 
-        :param dt: time step length in second.
+        :param dt: Time step length in seconds.
         :param support_foot_ids: IDs of support feet.
         :param wrench_cone_cost_weight: Weight for the wrench cone cost.
         :param foot_poses_ref: Dictionary of swing feet SE3 references.
@@ -621,7 +620,7 @@ class BackflipProblem:
                 )
 
         # ---------------------------------------------------------------------------- #
-        # Whole-base joint state tracking cost --------------------------------------- #
+        # Whole-body joint state tracking cost --------------------------------------- #
         # ---------------------------------------------------------------------------- #
         if x_ref is not None:
             x_track_residual = crocoddyl.ResidualModelState(self.state, x_ref, nu)
@@ -634,7 +633,7 @@ class BackflipProblem:
             costs.addCost("x_track", x_track_cost, x_track_cost_weight)
 
         # ---------------------------------------------------------------------------- #
-        # Whole-base joint state bounds ---------------------------------------------- #
+        # Whole-body joint state bounds ---------------------------------------------- #
         # ---------------------------------------------------------------------------- #
         if x_lb is not None and x_ub is not None:
             x_bounds_residual = crocoddyl.ResidualModelState(self.state, x_lb, nu)
@@ -717,7 +716,7 @@ class BackflipProblem:
         JMinvJt_damping: float = 1e-12,
     ) -> crocoddyl.ActionModelImpulseFwdDynamics:
         """
-        Create an actional model for impulse dynamics. This is used to handle the mode
+        Create an action model for impulse dynamics. This is used to handle the mode
         switch caused by contacts.
 
         :param support_foot_ids: IDs of support feet.
