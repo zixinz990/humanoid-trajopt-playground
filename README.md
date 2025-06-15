@@ -1,5 +1,11 @@
 # Humanoid Trajectory Optimization Playground
 
+## Updates
+
+**June 15, 2025**: Fixed bugs related to Talos jumping. The robot can now land on the ground with the correct foot poses, regardless of how the body is rotated.
+
+## Introduction
+
 This repository contains several Python scripts for solving trajectory optimization problems involving challenging maneuvers on various humanoid robots using whole-body dynamics. Currently, we have:
 
 1. Backflip, simple humanoid (simple_humanoid_backlip.py)
